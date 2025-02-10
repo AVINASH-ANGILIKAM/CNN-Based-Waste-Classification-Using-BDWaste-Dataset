@@ -91,7 +91,7 @@ The project provides comparative analysis of different CNN architectures. The fi
 
 🎓 References
 
-1Akter, M., et al. (2023). BDWaste: A comprehensive image dataset of digestible and indigestible waste in Bangladesh. Mendeley Data.
+1.Akter, M., et al. (2023). BDWaste: A comprehensive image dataset of digestible and indigestible waste in Bangladesh. Mendeley Data.
 
 2.Nnamoko, N., et al. (2022). Solid waste image classification using deep convolutional neural network. Infrastructures.
 
