@@ -48,6 +48,7 @@ Before running the project, ensure you have the following dependencies installed
 pip install tensorflow keras numpy pandas matplotlib seaborn opencv-python scikit-learn
 
 🚀 Running the Model
+
 	1.	Clone the repository:
 
 git clone https://github.com/AVINASH-ANGILIKAM/CNN-Based-Waste-Classification-Using-BDWaste-Dataset.git
@@ -89,10 +90,3 @@ The project provides comparative analysis of different CNN architectures. The fi
 	•	Complies with university ethical research policies.
 	•	Publicly available dataset for academic and research purposes.
 
-🎓 References
-
-1.Akter, M., et al. (2023). BDWaste: A comprehensive image dataset of digestible and indigestible waste in Bangladesh. Mendeley Data.
-
-2.Nnamoko, N., et al. (2022). Solid waste image classification using deep convolutional neural network. Infrastructures.
-
-3.Pandey, A., et al. (2023). Automated classification of biodegradable and non-biodegradable waste using CNN. ResearchGate.
