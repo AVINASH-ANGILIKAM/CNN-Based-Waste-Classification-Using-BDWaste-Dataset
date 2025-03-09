@@ -26,6 +26,33 @@ print("Dataset extracted successfully!")
 
 import os
 
+dataset_path = "/content/BDWaste"  # Update this path
+
+# Function to count images in each main subfolder
+def count_images_in_category(category_path):
+    image_extensions = ('.png', '.jpg', '.jpeg', '.webp', '.tiff')
+    total_images = 0
+
+    for root, _, files in os.walk(category_path):  # Recursively scan
+        total_images += sum(1 for file in files if file.lower().endswith(image_extensions))
+
+    return total_images
+
+# Scan BDWaste dataset
+print("\n📂 BDWaste contains:")
+total_count = 0
+
+for category in sorted(os.listdir(dataset_path)):  # Sorting for consistent order
+    category_path = os.path.join(dataset_path, category)
+    if os.path.isdir(category_path):  # Only process directories
+        image_count = count_images_in_category(category_path)
+        total_count += image_count
+        print(f"   🗂 {category}: {image_count} images")
+
+print(f"   📊 Total images in BDWaste: {total_count}\n")
+
+import os
+
 # Define dataset path
 dataset_inner_path = "/content/BDWaste/BDWaste"
 
