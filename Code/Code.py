@@ -208,74 +208,160 @@ for i in range(5):
     plt.axis('off')
 plt.show()
 
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
-
-# ✅ Define a simple CNN model
-def create_basic_cnn(input_shape=(224, 224, 3)):
-    model = Sequential([
-        Conv2D(32, (3, 3), activation='relu', input_shape=input_shape),
-        MaxPooling2D(2, 2),
-
-        Conv2D(64, (3, 3), activation='relu'),
-        MaxPooling2D(2, 2),
-
-        Conv2D(128, (3, 3), activation='relu'),
-        MaxPooling2D(2, 2),
-
-        Flatten(),
-        Dense(128, activation='relu'),
-        Dropout(0.5),  # Prevent overfitting
-        Dense(1, activation='sigmoid')  # Binary classification (Biodegradable vs Non-Biodegradable)
-    ])
-
-    model.compile(optimizer='adam',
-                  loss='binary_crossentropy',
-                  metrics=['accuracy'])
-
-    return model
-
-# ✅ Create model
-basic_cnn = create_basic_cnn()
-
-# ✅ Train the model
-history = basic_cnn.fit(
-    train_generator,
-    epochs=10,  # Adjust as needed
-    validation_data=val_generator
-)
-
-# ✅ Save the model
-basic_cnn.save('/content/drive/MyDrive/basic_cnn_model.h5')
-
-print("\n✅ Basic CNN Model Training Complete!")
-
+import os
 import matplotlib.pyplot as plt
+import seaborn as sns
+from glob import glob
 
-# ✅ Function to plot training history
-def plot_training_history(history):
-    plt.figure(figsize=(12, 5))
+# Define the confirmed dataset path
+bdwaste_path = "/content/BDWaste/BDWaste"  # Adjusted based on the actual folder structure
 
-    # Accuracy plot
-    plt.subplot(1, 2, 1)
-    plt.plot(history.history['accuracy'], label='Train Accuracy')
-    plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-    plt.xlabel("Epochs")
-    plt.ylabel("Accuracy")
-    plt.legend()
-    plt.title("Training vs Validation Accuracy")
+# Define the paths for Digestive and Indigestive folders
+digestive_path = os.path.join(bdwaste_path, "Digestive")
+indigestive_path = os.path.join(bdwaste_path, "Indigestive")
 
-    # Loss plot
-    plt.subplot(1, 2, 2)
-    plt.plot(history.history['loss'], label='Train Loss')
-    plt.plot(history.history['val_loss'], label='Validation Loss')
-    plt.xlabel("Epochs")
-    plt.ylabel("Loss")
-    plt.legend()
-    plt.title("Training vs Validation Loss")
+# Ensure paths exist
+if not os.path.exists(digestive_path):
+    raise FileNotFoundError("⚠️ Digestive folder not found!")
+if not os.path.exists(indigestive_path):
+    raise FileNotFoundError("⚠️ Indigestive folder not found!")
 
-    plt.show()
+print(f"\n✅ Digestive folder confirmed: {digestive_path}")
+print(f"✅ Indigestive folder confirmed: {indigestive_path}")
 
-# ✅ Show accuracy & loss curves
-plot_training_history(history)
+# Dictionary to store image counts
+image_counts = {"Digestive": {}, "Indigestive": {}}
+
+# Count images in Digestive
+print("\n📂 Counting images in Digestive categories:")
+digestive_categories = [d for d in os.listdir(digestive_path) if os.path.isdir(os.path.join(digestive_path, d))]
+for category in digestive_categories:
+    category_path = os.path.join(digestive_path, category)
+    image_files = glob(os.path.join(category_path, "**", "*.*"), recursive=True)
+    image_counts["Digestive"][category] = len(image_files)
+    print(f"  📌 {category}: {len(image_files)} images")
+
+# Count images in Indigestive
+print("\n📂 Counting images in Indigestive categories:")
+indigestive_categories = [d for d in os.listdir(indigestive_path) if os.path.isdir(os.path.join(indigestive_path, d))]
+for category in indigestive_categories:
+    category_path = os.path.join(indigestive_path, category)
+    image_files = glob(os.path.join(category_path, "**", "*.*"), recursive=True)
+    image_counts["Indigestive"][category] = len(image_files)
+    print(f"  📌 {category}: {len(image_files)} images")
+
+# Step 6: Visualize Image Counts for Digestive & Indigestive
+for folder in ["Digestive", "Indigestive"]:
+    if folder in image_counts and image_counts[folder]:
+        plt.figure(figsize=(12, 5))
+        sns.barplot(x=list(image_counts[folder].keys()),
+                    y=list(image_counts[folder].values()),
+                    hue=list(image_counts[folder].keys()),
+                    legend=False,
+                    palette="coolwarm")
+        plt.xticks(rotation=90)
+        plt.xlabel("Waste Categories")
+        plt.ylabel("Number of Images")
+        plt.title(f"BDWaste Dataset - Image Count in {folder}")
+        plt.show()
+
+import os
+import shutil
+import random
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from glob import glob
+from google.colab import drive
+from tensorflow.keras.preprocessing.image import ImageDataGenerator, img_to_array, array_to_img, load_img
+
+# Mount Google Drive
+drive.mount('/content/drive')
+
+# Define dataset paths
+bdwaste_path = "/content/BDWaste/BDWaste"  # Change if needed
+digestive_path = os.path.join(bdwaste_path, "Digestive")
+indigestive_path = os.path.join(bdwaste_path, "Indigestive")
+
+# Define the output directory for the new oversampled dataset
+output_path = "/content/BDWaste_Oversampled"
+os.makedirs(output_path, exist_ok=True)
+
+def augment_and_save_images(category_path, output_folder, target_count, augment=True):
+    """
+    Oversample images by either duplicating or augmenting.
+    Saves the images in the output folder.
+
+    :param category_path: Path to the category folder
+    :param output_folder: Path to save oversampled images
+    :param target_count: Number of images required after oversampling
+    :param augment: Whether to apply augmentation (default: True)
+    """
+    # Get list of existing images
+    image_files = glob(os.path.join(category_path, "*.*"))
+
+    # Create output directory if not exists
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Augmentation setup
+    datagen = ImageDataGenerator(
+        rotation_range=30,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True,
+        fill_mode='nearest'
+    )
+
+    # Duplicate/Augment images until we reach target count
+    current_count = len(image_files)
+    while current_count < target_count:
+        img_path = random.choice(image_files)
+        img = load_img(img_path)
+        img_array = img_to_array(img)
+        img_array = np.expand_dims(img_array, axis=0)
+
+        if augment:
+            for batch in datagen.flow(img_array, batch_size=1):
+                new_img = array_to_img(batch[0])
+                new_img_name = f"aug_{current_count}.jpg"
+                new_img.save(os.path.join(output_folder, new_img_name))
+                current_count += 1
+                if current_count >= target_count:
+                    break
+        else:
+            new_img_name = f"dup_{current_count}.jpg"
+            shutil.copy(img_path, os.path.join(output_folder, new_img_name))
+            current_count += 1
+
+    print(f"✅ Oversampled to {target_count} images in {output_folder}")
+
+# Find the max image count in any category
+category_counts = {}
+
+for main_folder, folder_path in [("Digestive", digestive_path), ("Indigestive", indigestive_path)]:
+    for category in os.listdir(folder_path):
+        category_path = os.path.join(folder_path, category)
+        if os.path.isdir(category_path):
+            image_count = len(glob(os.path.join(category_path, "*.*")))
+            category_counts[f"{main_folder}/{category}"] = image_count
+
+max_count = max(category_counts.values())  # Maximum number of images in any category
+
+print(f"\n🔹 Max image count found: {max_count} (Target for Oversampling)")
+
+# Oversample each category
+for main_folder, folder_path in [("Digestive", digestive_path), ("Indigestive", indigestive_path)]:
+    for category in os.listdir(folder_path):
+        category_path = os.path.join(folder_path, category)
+        output_folder = os.path.join(output_path, main_folder, category)
+
+        if os.path.isdir(category_path):
+            current_count = len(glob(os.path.join(category_path, "*.*")))
+            if current_count < max_count:
+                augment_and_save_images(category_path, output_folder, max_count, augment=True)
+            else:
+                # Copy original images if already at max count
+                shutil.copytree(category_path, output_folder, dirs_exist_ok=True)
+                print(f"✅ {category} already at {max_count}, copied without changes.")
