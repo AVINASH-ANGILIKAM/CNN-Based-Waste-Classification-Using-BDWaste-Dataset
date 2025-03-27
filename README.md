@@ -12,8 +12,6 @@ How accurately can different CNN architectures classify biodegradable and non-bi
 	•	Train and compare multiple CNN models:
 	•	Basic CNN
 	•	VGG16
-	•	ResNet50
-	•	EfficientNet
 	•	MobileNetV2
 	•	Optimize the best-performing model using hyperparameter tuning.
 	•	Evaluate model performance using accuracy, precision, recall, and F1-score.
