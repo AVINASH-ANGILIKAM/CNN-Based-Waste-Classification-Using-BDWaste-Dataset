@@ -176,6 +176,44 @@ test_generator = val_test_datagen.flow_from_directory(
 
 print("✅ Data generators ready: train, validation, test")
 
+def save_model_artifacts(model, history, name):
+    import os, json, pickle
+    import matplotlib.pyplot as plt
+
+    # Create directories
+    os.makedirs("saved_models", exist_ok=True)
+    os.makedirs("histories", exist_ok=True)
+    os.makedirs("plots", exist_ok=True)
+
+    # Save model
+    model.save(f"saved_models/{name}.keras")
+
+    # Save training history
+    with open(f"histories/{name}_history.pkl", "wb") as f:
+        pickle.dump(history.history, f)
+
+    # Save accuracy plot
+    plt.plot(history.history['accuracy'], label='Train Accuracy')
+    plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+    plt.title(f"{name} Accuracy")
+    plt.xlabel("Epochs")
+    plt.ylabel("Accuracy")
+    plt.legend()
+    plt.savefig(f"plots/{name}_accuracy_plot.png")
+    plt.close()
+
+    # Save validation accuracy to JSON
+    val_acc = history.history['val_accuracy'][-1]
+    acc_path = "saved_models/model_val_accuracies.json"
+    if os.path.exists(acc_path):
+        with open(acc_path, "r") as f:
+            results = json.load(f)
+    else:
+        results = {}
+    results[name] = val_acc
+    with open(acc_path, "w") as f:
+        json.dump(results, f, indent=4)
+
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization
@@ -216,17 +254,24 @@ model.compile(
 # Model summary
 model.summary()
 
-# Train the model
 import warnings
+import os
+import pickle
+import matplotlib.pyplot as plt
+
+# Suppress specific warnings
 warnings.filterwarnings("ignore", category=UserWarning, module='keras.src.trainers.data_adapters.py_dataset_adapter')
 
+# Train the model
 history = model.fit(
     train_generator,
     validation_data=val_generator,
     epochs=15,
     verbose=1
 )
-model.save("Custom_CNN_model_waste_classifier.keras")
+
+# Call the save function
+save_model_artifacts(model, history, "Custom_CNN_model_waste_classifier")
 
 import matplotlib.pyplot as plt
 
@@ -249,7 +294,7 @@ plt.legend()
 plt.show()
 
 from tensorflow.keras.models import load_model
-Custom_CNN_model_waste_classifier = load_model('Custom_CNN_model_waste_classifier.keras')
+Custom_CNN_model_waste_classifier = load_model("saved_models/Custom_CNN_model_waste_classifier.keras")
 
 from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
@@ -396,6 +441,9 @@ for name, base_fn in architectures.items():
     plt.savefig(f"plots/{name}_accuracy_plot.png")
     plt.close()
 
+    # Call save_model_artifacts after each model is trained
+    save_model_artifacts(model, history, name)  # Call the function that you already defined
+
 # Save all validation accuracies to JSON
 with open("saved_models/model_val_accuracies.json", "w") as f:
     json.dump(results, f, indent=4)
@@ -427,9 +475,9 @@ test_generator = test_datagen.flow_from_directory(
 )
 
 # STEP 2: Load and Recompile Models (to remove warning)
-vgg_model = load_model("VGG16_waste_classifier.keras")
-mobilenet_model = load_model("MobileNetV2_waste_classifier.keras")
-resNet50_model = load_model("ResNet50_waste_classifier.keras")
+vgg_model = load_model("saved_models/VGG16_waste_classifier.keras")
+mobilenet_model = load_model("saved_models/MobileNetV2_waste_classifier.keras")
+resNet50_model = load_model("saved_models/ResNet50_waste_classifier.keras")
 
 # ✅ Recompile to build metrics correctly
 vgg_model.compile(optimizer=Adam(learning_rate=1e-4), loss='categorical_crossentropy', metrics=['accuracy'])
@@ -500,123 +548,78 @@ model.fit(train_generator,
           epochs=15,  # Adjust epochs as needed
           verbose=1)
 
-# Save if you want
-model.save('Tuned_Mobilenetv2_waste_classifier.keras')
+
+# Example usage after training your model
+save_model_artifacts(model, history, "Tuned_Mobilenetv2_waste_classifier")
 
 from tensorflow.keras.models import load_model
 
-tuned_mobilenetv2 = load_model('Tuned_Mobilenetv2_waste_classifier.keras')  # or your filename
+tuned_mobilenetv2_model_waste_classifier =load_model("saved_models/Tuned_Mobilenetv2_waste_classifier.keras")
 
-evaluate_model(tuned_mobilenetv2, "Tuned_Mobilenetv2_waste_classifier", test_generator)
+evaluate_model(tuned_mobilenetv2_model_waste_classifier, "Tuned_Mobilenetv2_waste_classifier", test_generator)
 
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-
-test_path = "/content/BDWaste_Split/test"
-
-test_datagen = ImageDataGenerator(rescale=1./255)
-
-test_generator = test_datagen.flow_from_directory(
-    test_path,
-    target_size=(224, 224),
-    batch_size=32,
-    class_mode='categorical',
-    shuffle=False
-)
-
-from sklearn.metrics import classification_report, confusion_matrix
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-
-def evaluate_model(model, model_name, test_generator):
-    print(f"\n🔍 Evaluating {model_name} on Test Set...")
-
-    # Accuracy and loss
-    test_loss, test_acc = model.evaluate(test_generator, verbose=1)
-    print(f"\n✅ {model_name} - Test Accuracy: {test_acc:.4f}")
-    print(f"🧪 {model_name} - Test Loss: {test_loss:.4f}")
-
-    # Predictions
-    preds = model.predict(test_generator)
-    y_pred = np.argmax(preds, axis=1)
-    y_true = test_generator.classes
-    labels = list(test_generator.class_indices.keys())
-
-    # Classification Report
-    print(f"\n📊 {model_name} - Classification Report:")
-    print(classification_report(y_true, y_pred, target_names=labels))
-
-    # Confusion Matrix
-    cm = confusion_matrix(y_true, y_pred)
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
-                xticklabels=labels, yticklabels=labels)
-    plt.title(f'{model_name} - Confusion Matrix')
-    plt.xlabel('Predicted')
-    plt.ylabel('Actual')
-    plt.show()
-
+import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dropout, BatchNormalization, Flatten, Dense, Input
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras.optimizers import Adam, RMSprop, SGD
 
-# Enhanced Custom CNN
-def build_enhanced_cnn(input_shape=(224, 224, 3), num_classes=2):
+# Define your custom CNN with adjustable hyperparameters
+def build_custom_cnn(optimizer='adam', learning_rate=1e-4, dropout_rate=0.5, filters=[32, 64, 128], num_classes=2):
     model = Sequential([
-        Input(shape=input_shape),
+        Input(shape=(224, 224, 3)),
 
-        # Block 1
-        Conv2D(64, (3, 3), activation='relu', padding='same'),
+        Conv2D(filters[0], (3, 3), activation='relu'),
         BatchNormalization(),
         MaxPooling2D(),
 
-        # Block 2
-        Conv2D(128, (3, 3), activation='relu', padding='same'),
+        Conv2D(filters[1], (3, 3), activation='relu'),
         BatchNormalization(),
         MaxPooling2D(),
 
-        # Block 3
-        Conv2D(256, (3, 3), activation='relu', padding='same'),
-        BatchNormalization(),
-        MaxPooling2D(),
-
-        # Block 4 (extra depth)
-        Conv2D(512, (3, 3), activation='relu', padding='same'),
+        Conv2D(filters[2], (3, 3), activation='relu'),
         BatchNormalization(),
         MaxPooling2D(),
 
         Flatten(),
-        Dense(512, activation='relu'),
-        Dropout(0.4),
+        Dense(256, activation='relu'),
+        Dropout(dropout_rate),
         Dense(num_classes, activation='softmax')
     ])
 
-    model.compile(
-        optimizer=Adam(learning_rate=5e-4),
-        loss='categorical_crossentropy',
-        metrics=['accuracy']
-    )
-    return model
+    # Choose optimizer
+    if optimizer == 'adam':
+        opt = Adam(learning_rate=learning_rate)
+    elif optimizer == 'rmsprop':
+        opt = RMSprop(learning_rate=learning_rate)
+    elif optimizer == 'sgd':
+        opt = SGD(learning_rate=learning_rate, momentum=0.9)
 
-model = build_enhanced_cnn(num_classes=train_generator.num_classes)
+    model.compile(optimizer=opt,
+                  loss='categorical_crossentropy',
+                  metrics=['accuracy'])
+
+    return model
+model = build_custom_cnn(
+    optimizer='adam',
+    learning_rate=1e-4,
+    dropout_rate=0.5,
+    filters=[32, 64, 128],
+    num_classes=2
+)
 
 history = model.fit(
     train_generator,
     validation_data=val_generator,
     epochs=15,
-    callbacks=[early_stop, reduce_lr],
     verbose=1
 )
-model.save('Tuned_Custom_cnn_model_waste_classifier.h5')
 
-test_loss, test_acc = model.evaluate(test_generator)
-print(f"🎯 Test Accuracy: {test_acc:.4f}")
-print(f"🧪 Test Loss: {test_loss:.4f}")
+# Save the model, history, and plot in structured folders
+save_model_artifacts(model, history, "Tuned_Custom_CNN_model_waste_classifier")
 
-tuned_custom_model = load_model('Tuned_Custom_cnn_model_waste_classifier.keras')
+tuned_Custom_CNN_model_waste_classifier =load_model("saved_models/Tuned_Custom_CNN_model_waste_classifier.keras")
 
-evaluate_model(tuned_custom_model, "Tuned_Custom_cnn_model_waste_classifier", test_generator)
+evaluate_model(tuned_Custom_CNN_model_waste_classifier, "Tuned_Custom_CNN_model_waste_classifier", test_generator)
 
 from sklearn.metrics import classification_report, confusion_matrix
 import numpy as np
@@ -649,13 +652,13 @@ def compare_models(models_dict, test_generator):
 
 # Models to compare
 models = {
-    "Tuned_Custom_cnn_model_waste_classifier": tuned_custom_model,
-    "Tuned_Mobilenetv2_waste_classifier": tuned_mobilenetv2
+    "Tuned_Custom_CNN_model_waste_classifier": tuned_Custom_CNN_model_waste_classifier,
+    "Tuned_Mobilenetv2_model_waste_classifier": tuned_mobilenetv2_model_waste_classifier
 }
+
 
 # Run comparison
 comparison_results = compare_models(models, test_generator)
-
 import pandas as pd
 
 
