@@ -13,6 +13,7 @@ How accurately can different CNN architectures classify biodegradable and non-bi
 	•	Basic CNN
 	•	VGG16
 	•	MobileNetV2
+ ResNet
 	•	Optimize the best-performing model using hyperparameter tuning.
 	•	Evaluate model performance using accuracy, precision, recall, and F1-score.
 	•	Store and manage project code and data securely using GitHub for version control.
