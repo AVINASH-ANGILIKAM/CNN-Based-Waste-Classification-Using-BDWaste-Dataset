@@ -49,9 +49,9 @@ zip_path = "/content/drive/MyDrive/BDWaste.zip"
 if os.path.exists(zip_path):
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
         zip_ref.extractall("/content/")
-    print("✅ Dataset extracted to /content/")
+    print(" Dataset extracted to /content/")
 else:
-    print("⚠️ ZIP file not found at the path provided.")
+    print(" ZIP file not found at the path provided.")
 
 # OR if dataset is already a folder in Drive
 
