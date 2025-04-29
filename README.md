@@ -1,91 +1,88 @@
-# CNN-Based-Waste-Classification-Using-BDWaste-Dataset
-📌 Project Overview
+# CNN-Based Waste Classification Using BDWaste Dataset
 
-This project aims to develop a Convolutional Neural Network (CNN) model for classifying waste into biodegradable and non-biodegradable categories using the BDWaste dataset. The dataset consists of 2,625 real-world waste images categorized into 21 distinct classes. By training and evaluating multiple CNN architectures, this project identifies the most effective model for waste classification and optimizes its performance using hyperparameter tuning.
+## Project Overview
 
-🎯 Research Question
+Waste management is a critical global challenge that demands innovative solutions. This project presents a deep learning-based system for automated waste classification, distinguishing between Digestive (biodegradable) and Indigestive (non-biodegradable) waste using the BDWaste dataset.
 
-How accurately can different CNN architectures classify biodegradable and non-biodegradable waste, and does hyperparameter tuning significantly improve their performance?
+The project explores both custom Convolutional Neural Networks (CNNs) and Transfer Learning approaches, leveraging popular pre-trained models like VGG16, MobileNetV2, and ResNet50. Hyperparameter tuning and careful model evaluation were performed to optimize classification accuracy for real-world deployment.
 
-🚀 Project Objectives
-	•	Preprocess the BDWaste dataset and apply data augmentation techniques.
-	•	Train and compare multiple CNN models:
-	•	Basic CNN
-	•	VGG16
-	•	MobileNetV2
- ResNet
-	•	Optimize the best-performing model using hyperparameter tuning.
-	•	Evaluate model performance using accuracy, precision, recall, and F1-score.
-	•	Store and manage project code and data securely using GitHub for version control.
+## Dataset Description
 
-📂 Dataset Overview
-	•	Dataset Source: Mendeley Data Repository
-	•	Total Images: 2,625
-	•	Number of Classes: 21
-	•	Image Format: JPEG/PNG
-	•	Dataset Size: ~6.65GB
-	•	Data Collection Method: Captured using an Android device in indoor and outdoor settings.
+- Source: BDWaste dataset (Mendeley Data)
+- Total Images: 2,625
+- Classes: 2 main classes (Digestive and Indigestive), with 21 subcategories
+- Image Conditions: Captured in varied lighting and backgrounds using mobile devices
 
-📊 Model Training & Evaluation
+Digestive Waste Examples:
+- Rice, Potato Peel, Fish Ash, Lemon Peel, Eggshell....etc
 
-The project compares various CNN architectures to determine the most effective model for waste classification. Key steps include:
-	1.	Data Preprocessing & Augmentation (Resizing, Normalization, Augmentation)
-	2.	Training Different CNN Architectures
-	3.	Hyperparameter Tuning (Optimizing Learning Rate, Batch Size, Dropout, etc.)
-	4.	Model Evaluation using:
-	•	Accuracy
-	•	Precision
-	•	Recall
-	•	F1-score
+Indigestive Waste Examples:
+- Plastic, Wire, Glass, Paper, Polythene...etc
 
-⚙️ Implementation Details
+## Methodology
 
-🏗 Dependencies
+- Data Preprocessing:
+  - Images resized to 224x224 pixels
+  - Normalized pixel values
+  - Data augmentation applied only to training set
 
-Before running the project, ensure you have the following dependencies installed:
+- Model Architectures:
+  - Custom CNN (designed from scratch)
+  - Tuned Pre-trained Models: VGG16, MobileNetV2, ResNet50
 
-pip install tensorflow keras numpy pandas matplotlib seaborn opencv-python scikit-learn
+- Training Configuration:
+  - Optimizer: Adam
+  - Learning Rate: 0.0001
+  - Loss Function: Categorical Crossentropy
+  - Batch Size: 32
+  - Epochs: 15
+  - Early stopping applied to tuned pre-trained models only
 
-🚀 Running the Model
+- Evaluation Metrics:
+  - Accuracy
+  - Precision
+  - Recall
+  - F1-Score
+  - Confusion Matrix Analysis
+  - Training and Validation Loss/Accuracy Curves
 
-	1.	Clone the repository:
+## Key Results
 
-git clone https://github.com/AVINASH-ANGILIKAM/CNN-Based-Waste-Classification-Using-BDWaste-Dataset.git
-cd CNN-Based-Waste-Classification
+| Model                  | Test Accuracy | Precision | Recall | F1-Score |
+|-------------------------|---------------|-----------|--------|----------|
+| Custom CNN (Baseline)    | 85.92%         | 0.87      | 0.86   | 0.86     |
+| Tuned Custom CNN         | 98.19%         | 0.98      | 0.98   | 0.98     |
+| Tuned MobileNetV2        | 99.28%         | 0.99      | 0.99   | 0.99     |
+| Tuned VGG16              | 92.78%         | 0.93      | 0.93   | 0.93     |
+| Tuned ResNet50           | 68.23%         | 0.68      | 0.68   | 0.68     |
 
+Best Performer: Tuned MobileNetV2 achieved nearly perfect classification across all evaluation metrics.
 
-	2.	Download the dataset from Mendeley Data and place it in the dataset/ directory.
-	3.	Preprocess the data:
+## Why Data Augmentation Only on Training Set
 
-python dataset_preprocessing.py
+Data augmentation was applied exclusively to the training set to improve model generalization. Validation and test sets were kept original to ensure unbiased model evaluation.
 
+## Project Highlights
 
-	4.	Train the model:
+- Designed and tuned a Custom CNN model
+- Fine-tuned popular pre-trained models for the specific task
+- Achieved over 99% test accuracy using Tuned MobileNetV2
+- Visualized confusion matrices and training curves
+- Applied regularization techniques like dropout and early stopping
 
-python model_training.py
+## Future Work
 
+- Expand the dataset with more waste categories
+- Deploy lightweight models for real-time mobile applications
+- Explore object detection models for multi-object waste classification
+- Implement model compression for deployment on edge devices
 
-	5.	Evaluate the model:
+## License
 
-python model_evaluation.py
+This project is for educational and research purposes only.
 
+## Acknowledgements
 
-
-📊 Results
-
-The project provides comparative analysis of different CNN architectures. The final model selection is based on:
-	•	Accuracy: How often the model correctly classifies waste items.
-	•	Precision & Recall: The trade-off between false positives and false negatives.
-	•	F1-score: A balanced measure combining precision and recall.
-
-🔐 Data Management & Ethics
-	•	GitHub Repository: Project Link
-	•	Version Control: Weekly commits with clear documentation.
-	•	Storage & Security:
-	•	Code stored in GitHub.
-	•	Dataset stored in Google Drive and OneDrive.
-	•	Ethical Considerations:
-	•	Dataset does not contain personal or sensitive information.
-	•	Complies with university ethical research policies.
-	•	Publicly available dataset for academic and research purposes.
-
+- BDWaste Dataset (Mendeley Data)
+- TensorFlow, Keras libraries
+- Open-source deep learning community
