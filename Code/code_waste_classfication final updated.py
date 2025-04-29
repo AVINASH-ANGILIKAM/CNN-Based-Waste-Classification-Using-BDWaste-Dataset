@@ -474,6 +474,8 @@ tuned_Custom_CNN_model_waste_classifier =load_model("saved_models/Tuned_Custom_C
 
 evaluate_model(tuned_Custom_CNN_model_waste_classifier, "Tuned_Custom_CNN_model_waste_classifier", test_generator)
 
+"""##Compare and Evaluate All Models on Test Data"""
+
 from sklearn.metrics import classification_report, confusion_matrix
 import numpy as np
 
