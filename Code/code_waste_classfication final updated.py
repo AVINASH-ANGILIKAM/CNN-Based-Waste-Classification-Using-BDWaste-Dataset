@@ -41,8 +41,6 @@ drive.mount('/content/drive')
 # Define the dataset folder path
 dataset_path = "/content/BDWaste"  # We'll use this as the main working directory
 
-# If your dataset is in Drive, extract or copy it to /content/BDWaste
-# Example: zip_path = "/content/drive/MyDrive/bdwaste.zip"
 
 # Path to ZIP file in Drive (edit this if you’re using a ZIP)
 zip_path = "/content/drive/MyDrive/BDWaste.zip"
@@ -56,8 +54,7 @@ else:
     print("⚠️ ZIP file not found at the path provided.")
 
 # OR if dataset is already a folder in Drive
-# drive_folder_path = "/content/drive/MyDrive/BDWaste"
-# shutil.copytree(drive_folder_path, dataset_path, dirs_exist_ok=True)
+
 
 # Define paths for Digestive and Indigestive folders
 digestive_path = os.path.join(dataset_path, "Digestive")
@@ -332,7 +329,7 @@ history = model.fit(
     verbose=1
 )
 
-# Call the save function
+# save function
 save_model_artifacts(model, history, "Custom_CNN_model_waste_classifier")
 
 # Plot training history
@@ -388,7 +385,7 @@ for name, base_fn in architectures.items():
         verbose=1
     )
 
-    # Save everything neatly using your function
+ 
     save_model_artifacts(model, history,  f"Tuned_{name}")
 
 print("\n✅ All tuned pre-trained models trained and saved successfully!")
@@ -416,7 +413,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dropout, BatchNormalization, Flatten, Dense, Input
 from tensorflow.keras.optimizers import Adam
 
-# Set hyperparameters
+# hyperparameters
 optimizer_choice = 'adam'
 learning_rate = 1e-4
 dropout_rate = 0.5
@@ -467,7 +464,7 @@ history = model.fit(
     epochs=15,
     verbose=1
 )
-# Save the model, history, and plot in structured folders
+# Save the model, history, and plot 
 save_model_artifacts(model, history, "Tuned_Custom_CNN_model_waste_classifier")
 
 # Plot training history
