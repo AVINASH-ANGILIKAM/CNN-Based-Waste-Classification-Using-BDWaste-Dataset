@@ -51,7 +51,7 @@ if os.path.exists(zip_path):
         zip_ref.extractall("/content/")
     print(" Dataset extracted to /content/")
 else:
-    print(" ZIP file not found at the path provided.")
+    print(" ZIP file not Available.")
 
 # OR if dataset is already a folder in Drive
 
