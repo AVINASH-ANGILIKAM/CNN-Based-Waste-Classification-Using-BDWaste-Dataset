@@ -341,13 +341,7 @@ evaluate_model(Custom_CNN_model_waste_classifier, "Custom_CNN_model_waste_classi
 
 """## Fine-Tune and Train Pre-trained Models (VGG16, MobileNetV2, ResNet50)"""
 
-import tensorflow as tf
-from tensorflow.keras.applications import VGG16, ResNet50, MobileNetV2
-from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, Dropout
-from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping
-
+model_histories = {}
 # Model architectures to evaluate
 architectures = {
     "VGG16": VGG16,
@@ -355,16 +349,17 @@ architectures = {
     "ResNet50": ResNet50
 }
 
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module='keras.src.trainers.data_adapters.py_dataset_adapter')
+
 for name, base_fn in architectures.items():
     print(f"\n🔧 Training model: {name}")
 
     base_model = base_fn(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
 
-    # Freeze base layers
     for layer in base_model.layers:
         layer.trainable = False
 
-    # Add custom head
     x = base_model.output
     x = GlobalAveragePooling2D()(x)
     x = Dense(256, activation='relu')(x)
@@ -385,15 +380,15 @@ for name, base_fn in architectures.items():
         verbose=1
     )
 
- 
-    save_model_artifacts(model, history,  f"Tuned_{name}")
+    model_histories[name] = history
+    save_model_artifacts(model, history, f"Tuned_{name}")
 
 print("\n✅ All tuned pre-trained models trained and saved successfully!")
 
-# Plot training history for tuned models
-plot_training_history(history, model_name="Tuned_VGG16")
-plot_training_history(history, model_name="Tuned_MobileNetV2")
-plot_training_history(history, model_name="Tuned_ResNet50")
+# Plot training history for all models
+for model_name, history in model_histories.items():
+    plot_training_history(history, model_name=f"Tuned_{model_name}")
+
 
 # Load all saved tuned models properly
 models = {}
